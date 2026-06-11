@@ -29,7 +29,7 @@ public class ProductUI extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JPanel formPanel = new JPanel(new GridLayout(7,2,10,10));
+        JPanel formPanel = new JPanel(new GridLayout(8,2,10,10));
 
         txtName = new JTextField();
         txtCategory = new JTextField();
@@ -57,10 +57,14 @@ public class ProductUI extends JFrame {
         formPanel.add(txtReorderLevel);
 
         JButton btnAdd = new JButton("Add Product");
+        JButton btnUpdate = new JButton("Update Product");
         JButton btnDelete = new JButton("Delete Product");
 
         formPanel.add(btnAdd);
+        formPanel.add(btnUpdate);
+
         formPanel.add(btnDelete);
+        formPanel.add(new JLabel(""));
 
         add(formPanel, BorderLayout.NORTH);
 
@@ -83,8 +87,10 @@ public class ProductUI extends JFrame {
         loadProducts();
 
         btnAdd.addActionListener(e -> addProduct());
-
+        btnUpdate.addActionListener(e -> updateProduct());
         btnDelete.addActionListener(e -> deleteProduct());
+
+        table.getSelectionModel().addListSelectionListener(e -> fillFieldsFromTable());
     }
 
     private void addProduct() {
@@ -139,6 +145,60 @@ public class ProductUI extends JFrame {
                     "Deleted Successfully");
 
             loadProducts();
+        }
+    }
+    private void fillFieldsFromTable() {
+        int row = table.getSelectedRow();
+
+        if (row != -1) {
+            txtName.setText(model.getValueAt(row, 1).toString());
+            txtCategory.setText(model.getValueAt(row, 2).toString());
+            txtPrice.setText(model.getValueAt(row, 3).toString());
+            txtEcoRating.setText(model.getValueAt(row, 4).toString());
+            txtQuantity.setText(model.getValueAt(row, 5).toString());
+            txtReorderLevel.setText(model.getValueAt(row, 6).toString());
+        }
+    }
+
+    private void updateProduct() {
+        int row = table.getSelectedRow();
+
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a Product to update");
+            return;
+        }
+
+        try {
+            String name = txtName.getText().trim();
+            String category = txtCategory.getText().trim();
+
+            if (name.isEmpty() || category.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Name and category are required");
+                return;
+            }
+
+            double price = Double.parseDouble(txtPrice.getText().trim());
+            int ecoRating = Integer.parseInt(txtEcoRating.getText().trim());
+            int quantity = Integer.parseInt(txtQuantity.getText().trim());
+            int reorderLevel = Integer.parseInt(txtReorderLevel.getText().trim());
+
+            if (price <= 0 || ecoRating < 1 || ecoRating > 5 || quantity < 0 || reorderLevel < 0) {
+                JOptionPane.showMessageDialog(this, "Enter valid product details");
+                return;
+            }
+
+            int id = Integer.parseInt(model.getValueAt(row, 0).toString());
+
+            Product product = new Product(id, name, category, price, ecoRating, quantity, reorderLevel);
+
+            if (productDB.updateProduct(product)) {
+                JOptionPane.showMessageDialog(this, "Product Updated Successfully");
+                clearFields();
+                loadProducts();
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Invalid input values");
         }
     }
 

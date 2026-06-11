@@ -92,4 +92,54 @@ public class ProductDB {
 
         return false;
     }
+    public boolean stockInProduct(int productId, int quantityToAdd) {
+
+        String sql =
+                "UPDATE products " +
+                        "SET quantity = quantity + ? " +
+                        "WHERE product_id=?";
+
+        try {
+
+            Connection conn = DBConnection.getConnection();
+
+            PreparedStatement pst =
+                    conn.prepareStatement(sql);
+
+            pst.setInt(1, quantityToAdd);
+            pst.setInt(2, productId);
+
+            return pst.executeUpdate() > 0;
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+    public boolean updateProduct(Product product) {
+
+        String sql = "UPDATE products SET name=?, category=?, price=?, eco_rating=?, quantity=?, reorder_level=? WHERE product_id=?";
+
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pst = conn.prepareStatement(sql);
+
+            pst.setString(1, product.getName());
+            pst.setString(2, product.getCategory());
+            pst.setDouble(3, product.getPrice());
+            pst.setInt(4, product.getEcoRating());
+            pst.setInt(5, product.getQuantity());
+            pst.setInt(6, product.getReorderLevel());
+            pst.setInt(7, product.getProductId());
+
+            return pst.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }
