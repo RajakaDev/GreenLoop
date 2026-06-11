@@ -1,3 +1,5 @@
+package view;
+
 import database.DBConnection;
 import java.sql.Connection;
 
