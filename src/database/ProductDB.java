@@ -142,5 +142,33 @@ public class ProductDB {
 
         return false;
     }
+    public Product getProductById(int productId) {
+        String sql = "SELECT * FROM products WHERE product_id=?";
+
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, productId);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("eco_rating"),
+                        rs.getInt("quantity"),
+                        rs.getInt("reorder_level")
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
 }
