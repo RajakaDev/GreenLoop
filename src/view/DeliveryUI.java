@@ -4,6 +4,7 @@ import database.DeliveryAgentDB;
 import database.DeliveryDB;
 import database.DBConnection;
 import model.DeliveryAgent;
+import serviceLayer.EmailService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -129,6 +130,19 @@ public class DeliveryUI extends JFrame {
         int agentId = agents.get(cmbAgent.getSelectedIndex()).getAgentId();
 
         if (deliveryDB.assignDelivery(orderId, agentId, date)) {
+
+            DeliveryAgent agent = agents.get(cmbAgent.getSelectedIndex());
+
+            EmailService.sendEmail(
+                    agent.getEmail(),
+                    "New Delivery Assigned",
+                    "Dear " + agent.getName() + ",\n\n" +
+                            "A new delivery has been assigned to you.\n" +
+                            "Order ID: " + orderId + "\n" +
+                            "Delivery Date: " + date + "\n\n" +
+                            "Please check the GreenLoop system for more details."
+            );
+
             JOptionPane.showMessageDialog(this, "Delivery Assigned Successfully");
             loadDeliveries();
         }
@@ -146,6 +160,22 @@ public class DeliveryUI extends JFrame {
         String status = cmbStatus.getSelectedItem().toString();
 
         if (deliveryDB.updateDeliveryStatus(deliveryId, status)) {
+
+            if (status.equals("Dispatched")) {
+                String[] client = deliveryDB.getClientDetailsByDeliveryId(deliveryId);
+
+                if (client != null) {
+                    EmailService.sendEmail(
+                            client[1],
+                            "Your GreenLoop Order Has Been Dispatched",
+                            "Dear " + client[0] + ",\n\n" +
+                                    "Your order has been dispatched.\n" +
+                                    "Order ID: " + client[2] + "\n\n" +
+                                    "Thank you for choosing GreenLoop."
+                    );
+                }
+            }
+
             JOptionPane.showMessageDialog(this, "Delivery Status Updated");
             loadDeliveries();
         }

@@ -78,4 +78,34 @@ public class DeliveryDB {
 
         return false;
     }
+    public String[] getClientDetailsByDeliveryId(int deliveryId) {
+        String sql = """
+            SELECT c.name, c.email, d.order_id
+            FROM deliveries d
+            JOIN orders o ON d.order_id = o.order_id
+            JOIN clients c ON o.client_id = c.client_id
+            WHERE d.delivery_id=?
+            """;
+
+        try {
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setInt(1, deliveryId);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return new String[]{
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        String.valueOf(rs.getInt("order_id"))
+                };
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }
