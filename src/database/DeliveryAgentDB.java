@@ -72,4 +72,29 @@ public class DeliveryAgentDB {
 
         return false;
     }
+    public boolean updateAgent(DeliveryAgent agent) {
+
+        String sql = "UPDATE delivery_agents SET name=?, email=?, phone=?, vehicle_no=?, vehicle_type=? WHERE agent_id=?";
+
+        try {
+
+            Connection conn = DBConnection.getConnection();
+
+            PreparedStatement pst = conn.prepareStatement(sql);
+
+            pst.setString(1, agent.getName());
+            pst.setString(2, agent.getEmail());
+            pst.setString(3, agent.getPhone());
+            pst.setString(4, agent.getVehicleNo());
+            pst.setString(5, agent.getVehicleType());
+            pst.setInt(6, agent.getAgentId());
+
+            return pst.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

@@ -22,7 +22,7 @@ public class DeliveryAgentUI extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel formPanel = new JPanel(new GridLayout(7, 2, 10, 10));
 
         txtName = new JTextField();
         txtEmail = new JTextField();
@@ -46,10 +46,14 @@ public class DeliveryAgentUI extends JFrame {
         formPanel.add(txtVehicleType);
 
         JButton btnAdd = new JButton("Add Agent");
+        JButton btnUpdate = new JButton("Update Agent");
         JButton btnDelete = new JButton("Delete Agent");
 
         formPanel.add(btnAdd);
+        formPanel.add(btnUpdate);
+
         formPanel.add(btnDelete);
+        formPanel.add(new JLabel(""));
 
         add(formPanel, BorderLayout.NORTH);
 
@@ -67,7 +71,26 @@ public class DeliveryAgentUI extends JFrame {
         loadAgents();
 
         btnAdd.addActionListener(e -> addAgent());
+        btnUpdate.addActionListener(e -> updateAgent());
         btnDelete.addActionListener(e -> deleteAgent());
+
+        table.getSelectionModel().addListSelectionListener(
+                e -> fillFieldsFromTable()
+        );
+    }
+
+    private void fillFieldsFromTable() {
+
+        int row = table.getSelectedRow();
+
+        if(row != -1) {
+
+            txtName.setText(model.getValueAt(row,1).toString());
+            txtEmail.setText(model.getValueAt(row,2).toString());
+            txtPhone.setText(model.getValueAt(row,3).toString());
+            txtVehicleNo.setText(model.getValueAt(row,4).toString());
+            txtVehicleType.setText(model.getValueAt(row,5).toString());
+        }
     }
 
     private void addAgent() {
@@ -141,6 +164,63 @@ public class DeliveryAgentUI extends JFrame {
                     a.getVehicleNo(),
                     a.getVehicleType()
             });
+        }
+    }
+    private void updateAgent() {
+
+        int row = table.getSelectedRow();
+
+        if(row == -1) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Select an Agent to update");
+
+            return;
+        }
+
+        String name = txtName.getText().trim();
+        String email = txtEmail.getText().trim();
+        String phone = txtPhone.getText().trim();
+        String vehicleNo = txtVehicleNo.getText().trim();
+        String vehicleType = txtVehicleType.getText().trim();
+
+        if(name.isEmpty()) {
+            JOptionPane.showMessageDialog(this,"Name is required");
+            return;
+        }
+
+        if(email.isEmpty() || !email.contains("@")) {
+            JOptionPane.showMessageDialog(this,"Valid email required");
+            return;
+        }
+
+        if(!phone.matches("\\d{10}")) {
+            JOptionPane.showMessageDialog(this,"Phone must be 10 digits");
+            return;
+        }
+
+        int id =
+                Integer.parseInt(
+                        model.getValueAt(row,0).toString()
+                );
+
+        DeliveryAgent agent =
+                new DeliveryAgent(
+                        id,
+                        name,
+                        email,
+                        phone,
+                        vehicleNo,
+                        vehicleType
+                );
+
+        if(agentDB.updateAgent(agent)) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Agent Updated Successfully");
+
+            clearFields();
+            loadAgents();
         }
     }
 

@@ -22,7 +22,7 @@ public class ClientUI extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
 
         txtName = new JTextField();
         txtEmail = new JTextField();
@@ -42,10 +42,14 @@ public class ClientUI extends JFrame {
         formPanel.add(txtAddress);
 
         JButton btnAdd = new JButton("Add Client");
+        JButton btnUpdate = new JButton("Update Client");
         JButton btnDelete = new JButton("Delete Client");
 
         formPanel.add(btnAdd);
+        formPanel.add(btnUpdate);
+
         formPanel.add(btnDelete);
+        formPanel.add(new JLabel(""));
 
         add(formPanel, BorderLayout.NORTH);
 
@@ -62,7 +66,21 @@ public class ClientUI extends JFrame {
         loadClients();
 
         btnAdd.addActionListener(e -> addClient());
+        btnUpdate.addActionListener(e -> updateClient());
         btnDelete.addActionListener(e -> deleteClient());
+
+        table.getSelectionModel().addListSelectionListener(e -> fillFieldsFromTable());
+    }
+
+    private void fillFieldsFromTable() {
+        int row = table.getSelectedRow();
+
+        if (row != -1) {
+            txtName.setText(model.getValueAt(row, 1).toString());
+            txtEmail.setText(model.getValueAt(row, 2).toString());
+            txtPhone.setText(model.getValueAt(row, 3).toString());
+            txtAddress.setText(model.getValueAt(row, 4).toString());
+        }
     }
 
     private void addClient() {
@@ -140,6 +158,49 @@ public class ClientUI extends JFrame {
                     c.getPhone(),
                     c.getAddress()
             });
+        }
+    }
+    private void updateClient() {
+        int row = table.getSelectedRow();
+
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a Client to update");
+            return;
+        }
+
+        String name = txtName.getText().trim();
+        String email = txtEmail.getText().trim();
+        String phone = txtPhone.getText().trim();
+        String address = txtAddress.getText().trim();
+
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Client name is required");
+            return;
+        }
+
+        if (email.isEmpty() || !email.contains("@") || !email.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Enter a valid email address");
+            return;
+        }
+
+        if (!phone.matches("\\d{10}")) {
+            JOptionPane.showMessageDialog(this, "Phone number must contain 10 digits");
+            return;
+        }
+
+        if (address.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Address is required");
+            return;
+        }
+
+        int id = Integer.parseInt(model.getValueAt(row, 0).toString());
+
+        Client client = new Client(id, name, email, phone, address);
+
+        if (clientDB.updateClient(client)) {
+            JOptionPane.showMessageDialog(this, "Client Updated Successfully");
+            clearFields();
+            loadClients();
         }
     }
 
