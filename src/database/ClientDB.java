@@ -92,4 +92,42 @@ public class ClientDB {
 
         return false;
     }
+    public ArrayList<Client> searchClients(String keyword) {
+
+        ArrayList<Client> clients = new ArrayList<>();
+
+        String sql =
+                "SELECT * FROM clients WHERE name LIKE ?";
+
+        try {
+
+            Connection conn =
+                    DBConnection.getConnection();
+
+            PreparedStatement pst =
+                    conn.prepareStatement(sql);
+
+            pst.setString(1, "%" + keyword + "%");
+
+            ResultSet rs = pst.executeQuery();
+
+            while(rs.next()) {
+
+                clients.add(
+                        new Client(
+                                rs.getInt("client_id"),
+                                rs.getString("name"),
+                                rs.getString("email"),
+                                rs.getString("phone"),
+                                rs.getString("address")
+                        )
+                );
+            }
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        return clients;
+    }
 }

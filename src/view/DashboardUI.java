@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import database.DashboardDB;
 
 public class DashboardUI extends JFrame {
 
@@ -18,6 +19,8 @@ public class DashboardUI extends JFrame {
     private static final Color C_TEXT    = new Color(0x1A2E22);
     private static final Color C_SIDEBAR_TEXT  = new Color(0xB0CDB8);
     private static final Color C_SIDEBAR_HOVER = new Color(0x2E4A36);
+
+    private DashboardDB dashboardDB = new DashboardDB();
 
     public DashboardUI() {
         setTitle("GreenLoop - Eco Packaging Management System");
@@ -187,11 +190,27 @@ public class DashboardUI extends JFrame {
         sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         sub.setForeground(C_MUTED);
 
-        JPanel tg = new JPanel(); tg.setOpaque(false);
+        JPanel tg = new JPanel();
+        tg.setOpaque(false);
         tg.setLayout(new BoxLayout(tg, BoxLayout.Y_AXIS));
-        tg.add(title); tg.add(sub);
+        tg.add(title);
+        tg.add(sub);
+
         topBar.add(tg, BorderLayout.WEST);
         main.add(topBar, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setOpaque(false);
+
+        // statistics cards
+        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 14, 14));
+        statsPanel.setOpaque(false);
+        statsPanel.setBorder(new EmptyBorder(0, 28, 18, 28));
+
+        statsPanel.add(createStatCard("Products", dashboardDB.getProductCount(), "📦"));
+        statsPanel.add(createStatCard("Clients", dashboardDB.getClientCount(), "👥"));
+        statsPanel.add(createStatCard("Orders", dashboardDB.getOrderCount(), "🧾"));
+        statsPanel.add(createStatCard("Agents", dashboardDB.getAgentCount(), "🚚"));
 
         // module tiles
         JPanel grid = new JPanel(new GridLayout(2, 4, 14, 14));
@@ -199,19 +218,25 @@ public class DashboardUI extends JFrame {
         grid.setBorder(new EmptyBorder(6, 28, 28, 28));
 
         Object[][] modules = {
-                {"📦","Product Catalogue", "Manage products"},
-                {"👥","Clients",           "Accounts & contacts"},
-                {"🗄", "Inventory",         "Stock & reorder levels"},
-                {"🚚","Delivery Agents",   "Agent roster"},
-                {"🧾","Process Orders",    "Create client orders"},
-                {"📍","Delivery Assignment","Assign & track"},
-                {"📊","Reports",           "Sales & inventory"},
-                {"⏻", "Exit",              "Close application"},
+                {"📦", "Product Catalogue", "Manage products"},
+                {"👥", "Clients", "Accounts & contacts"},
+                {"🗄", "Inventory", "Stock & reorder levels"},
+                {"🚚", "Delivery Agents", "Agent roster"},
+                {"🧾", "Process Orders", "Create client orders"},
+                {"📍", "Delivery Assignment", "Assign & track"},
+                {"📊", "Reports", "Sales & inventory"},
+                {"⏻", "Exit", "Close application"},
         };
-        for (Object[] m : modules)
-            grid.add(moduleTile((String)m[0], (String)m[1], (String)m[2]));
 
-        main.add(grid, BorderLayout.CENTER);
+        for (Object[] m : modules) {
+            grid.add(moduleTile((String) m[0], (String) m[1], (String) m[2]));
+        }
+
+        centerPanel.add(statsPanel, BorderLayout.NORTH);
+        centerPanel.add(grid, BorderLayout.CENTER);
+
+        main.add(centerPanel, BorderLayout.CENTER);
+
         return main;
     }
 
@@ -266,6 +291,37 @@ public class DashboardUI extends JFrame {
         tile.add(Box.createVerticalStrut(3));
         tile.add(sl);
         return tile;
+    }
+    private JPanel createStatCard(String title, int value, String icon) {
+
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        card.setBackground(Color.WHITE);
+
+        card.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(220,220,220)),
+                        new EmptyBorder(15,15,15,15)
+                )
+        );
+
+        JLabel lblIcon = new JLabel(icon);
+        lblIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
+        JLabel lblValue = new JLabel(String.valueOf(value));
+        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 28));
+
+        card.add(lblIcon);
+        card.add(Box.createVerticalStrut(5));
+        card.add(lblTitle);
+        card.add(Box.createVerticalStrut(5));
+        card.add(lblValue);
+
+        return card;
     }
 
     private void openModule(String label) {

@@ -25,6 +25,7 @@ public class ClientUI extends JFrame {
     private static final Color C_ROW_ALT = new Color(0xF0F7F3);
     private static final Color C_ROW_SEL = new Color(0xC8E6D2);
 
+    JTextField txtSearch;
     JTextField txtName, txtEmail, txtPhone, txtAddress;
     JTable table;
     DefaultTableModel model;
@@ -121,19 +122,46 @@ public class ClientUI extends JFrame {
         model = new DefaultTableModel(new String[]{"ID","Name","Email","Phone","Address"}, 0) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
-        table = styledTable(model);
 
+        table = styledTable(model);
         JScrollPane sp = styledScroll(table);
 
         JLabel heading = new JLabel("All Clients");
         heading.setFont(new Font("Segoe UI", Font.BOLD, 15));
         heading.setForeground(C_TEXT);
-        heading.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+        txtSearch = styledField();
+        txtSearch.setPreferredSize(new Dimension(220, 32));
+
+        JButton btnSearch = smallButton("Search");
+        JButton btnShowAll = smallButton("Show All");
+
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        searchPanel.setOpaque(false);
+
+        searchPanel.add(new JLabel("Search Client"));
+        searchPanel.add(txtSearch);
+        searchPanel.add(btnSearch);
+        searchPanel.add(btnShowAll);
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        topPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        topPanel.add(heading, BorderLayout.NORTH);
+        topPanel.add(searchPanel, BorderLayout.SOUTH);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-        panel.add(heading, BorderLayout.NORTH);
+        panel.add(topPanel, BorderLayout.NORTH);
         panel.add(sp, BorderLayout.CENTER);
+
+        btnSearch.addActionListener(e -> searchClients());
+
+        btnShowAll.addActionListener(e -> {
+            txtSearch.setText("");
+            loadClients();
+        });
+
         return panel;
     }
 
@@ -216,6 +244,32 @@ public class ClientUI extends JFrame {
         for (Client c : clients)
             model.addRow(new Object[]{c.getClientId(),c.getName(),c.getEmail(),c.getPhone(),c.getAddress()});
     }
+    private void searchClients() {
+        String keyword = txtSearch.getText().trim();
+
+        if (keyword.isEmpty()) {
+            loadClients();
+            return;
+        }
+
+        model.setRowCount(0);
+
+        ArrayList<Client> clients = clientDB.searchClients(keyword);
+
+        for (Client c : clients) {
+            model.addRow(new Object[]{
+                    c.getClientId(),
+                    c.getName(),
+                    c.getEmail(),
+                    c.getPhone(),
+                    c.getAddress()
+            });
+        }
+
+        if (clients.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No clients found");
+        }
+    }
 
     private void clearFields() {
         txtName.setText(""); txtEmail.setText(""); txtPhone.setText(""); txtAddress.setText("");
@@ -275,6 +329,15 @@ public class ClientUI extends JFrame {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setForeground(C_WHITE); btn.setContentAreaFilled(false);
         btn.setBorderPainted(false); btn.setFocusPainted(false); btn.setOpaque(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+    private JButton smallButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(C_ACCENT);
+        btn.setForeground(C_WHITE);
+        btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
     }
